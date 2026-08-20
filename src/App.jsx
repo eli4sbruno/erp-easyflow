@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
-import Login from './components/Login';
-import Dashboard from './components/Dashboard'; 
-import Financeiro from './components/Financeiro';
-import Estoque from './components/Estoque';
-import Vendas from './components/Vendas';
-import Producao from './components/Producao';
-import RH from './components/RH';
-import Compras from './components/Compras';
-import Marketing from './components/Marketing';
-import Configuracoes from './components/Configuracoes';
-import Clientes from './components/Clientes';
+import React, { useState, useEffect } from "react";
+import { supabase } from "@/supabaseClient";
+import Login from "@/modules/login/Login";
+import Dashboard from "@/modules/dashboard/Dashboard";
+import Financeiro from "@/modules/financeiro/Financeiro";
+import Clientes from "@/modules/clientes/Clientes";
+import Estoque from "@/modules/estoque/Estoque";
+import Vendas from "@/modules/vendas/Vendas";
+import Producao from "@/modules/producao/Producao";
+import PainelFiscal from "@/modules/fiscal/PainelFiscal";
+import PainelRelatorios from "@/modules/relatorios/PainelRelatorios";
+import Compras from "@/modules/compras/Compras";
+import Marketing from "@/modules/marketing/Marketing";
+import RH from "@/modules/rh/RH";
+import Configuracoes from "@/modules/configuracoes/Configuracoes";
+import Portal from "@/modules/portal/Portal";
 
 // Conjunto de ícones vetoriais
 const Icons = {
