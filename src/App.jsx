@@ -10,6 +10,7 @@ import Clientes from "@/modules/clientes/Clientes";
 import Estoque from "@/modules/estoque/Estoque";
 import Vendas from "@/modules/vendas/Vendas";
 import Producao from "@/modules/producao/Producao";
+import Agenda from '@/modules/agenda/Agenda';
 import Configuracoes from "@/modules/configuracoes/Configuracoes";
 
 // 2. Import do nosso novo Layout (que já contém Sidebar e Header)
@@ -78,6 +79,7 @@ export default function App() {
           <Route path="/estoque" element={<div className="max-w-7xl mx-auto h-full"><Estoque /></div>} />
           <Route path="/vendas" element={<div className="max-w-7xl mx-auto h-full"><Vendas /></div>} />
           <Route path="/producao" element={<div className="max-w-7xl mx-auto h-full"><Producao /></div>} />
+          <Route path="/agenda" element={<Agenda />} />
           <Route path="/clientes" element={<div className="max-w-7xl mx-auto h-full"><Clientes /></div>} />
           <Route path="/configuracoes" element={<div className="max-w-7xl mx-auto h-full"><Configuracoes /></div>} />
         </Route>
