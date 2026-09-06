@@ -1,124 +1,300 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/supabaseClient";
+
+// Importação dos Modais para as Ações Rápidas
+import ModalPedidoVenda from "@/modules/vendas/components/ModalPedidoVenda";
 import ModalPagamento from "@/modules/financeiro/components/ModalPagamento";
 import ModalNovaOS from "@/modules/producao/components/ModalNovaOS";
 
-const formatMoeda = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
+// --- Ícones Principais ---
+const SalesIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>;
+const OSIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>;
+const FinanceIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>;
+const StockIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>;
 
-const Icons = {
-  Financeiro: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>,
-  Producao: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>,
-  Alert: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>,
-  Clientes: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-};
+// --- Ícones Secundários ---
+const TrendingUpIcon = () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>;
+const TrendingDownIcon = () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg>;
+const SearchIcon = () => <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>;
 
-const KPICards = ({ data, isLoading }) => {
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {[1,2,3,4].map(i => (
-          <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 animate-pulse">
-            <div className="h-4 bg-slate-200 rounded w-1/2 mb-4"></div>
-            <div className="h-8 bg-slate-200 rounded w-3/4 mb-4"></div>
-            <div className="h-4 bg-slate-200 rounded w-1/3"></div>
-          </div>
-        ))}
+const MiniChartDecoration = ({ color }) => (
+  <div className={`absolute bottom-0 right-4 flex items-end gap-1 opacity-20 pointer-events-none text-${color}`}>
+    <div className="w-2.5 h-4 bg-current rounded-t-[2px]"></div>
+    <div className="w-2.5 h-7 bg-current rounded-t-[2px]"></div>
+    <div className="w-2.5 h-12 bg-current rounded-t-[2px]"></div>
+    <div className="w-2.5 h-9 bg-current rounded-t-[2px]"></div>
+    <div className="w-2.5 h-16 bg-current rounded-t-[2px]"></div>
+  </div>
+);
+
+export default function Dashboard({ setActiveTab }) {
+  const [userName, setUserName] = useState('Usuário');
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Estados dos Modais de Ações Rápidas
+  const [isModalVendaOpen, setIsModalVendaOpen] = useState(false);
+  const [isModalPagamentoOpen, setIsModalPagamentoOpen] = useState(false);
+  const [isModalOSOpen, setIsModalOSOpen] = useState(false);
+
+  const [kpis, setKpis] = useState({
+    vendasMes: 0,
+    osPendentes: 0,
+    saldoMensal: 0,
+    alertasEstoque: 0
+  });
+
+  const [ultimasVendas, setUltimasVendas] = useState([]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    setIsLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user && user.email) setUserName(user.email.split('@')[0]);
+
+    const hoje = new Date();
+    const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString();
+
+    try {
+      // 1. DADOS CALCULADOS PELO SUPABASE VIA RPC (Performance Ouro)
+      const { data: summary, error: summaryError } = await supabase.rpc('get_dashboard_summary', { 
+        mes_inicio: primeiroDiaMes 
+      });
+
+      if (summaryError) {
+        console.error("Erro ao buscar resumo na RPC:", summaryError);
+      }
+
+      // 2. CONTAGEM EXATA DE O.S PENDENTES
+      const { count: osCount } = await supabase.from('producao')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['Pendente', 'Em Andamento']);
+
+      // 3. VENDAS RECENTES (Para a tabela inferior)
+      const { data: ultimosPedidos } = await supabase.from('vendas')
+        .select('id, servico, valor_total, status, created_at, clientes(nome_razao)')
+        .order('created_at', { ascending: false })
+        .limit(5);
+        
+      const { data: ultimasTransacoes } = await supabase.from('transacoes')
+        .select('id, cliente, descricao, valor, status, created_at')
+        .eq('tipo', 'receita')
+        .is('venda_id', null)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      const listaPedidos = (ultimosPedidos || []).map(v => ({
+        id: `pedido-${v.id}`,
+        cliente: v.clientes?.nome_razao || 'Sem Nome',
+        servico: v.servico || 'Pedido de Venda',
+        valor_total: v.valor_total,
+        status: v.status,
+        data: new Date(v.created_at)
+      }));
+
+      const listaPdv = (ultimasTransacoes || []).map(t => ({
+        id: `pdv-${t.id}`,
+        cliente: t.cliente || 'Cliente Balcão',
+        servico: t.descricao || 'Caixa Rápido',
+        valor_total: t.valor,
+        status: t.status === 'Pago' ? 'Concluído' : t.status,
+        data: new Date(t.created_at)
+      }));
+
+      // Junta as duas listas, ordena pela data mais recente e pega as 5 primeiras
+      const mesclado = [...listaPedidos, ...listaPdv].sort((a, b) => b.data - a.data).slice(0, 5);
+      setUltimasVendas(mesclado);
+
+      // 4. ATUALIZA O ESTADO DOS KPIs
+      setKpis({ 
+        vendasMes: summary?.faturamento_total || 0, 
+        osPendentes: osCount || 0, 
+        saldoMensal: summary?.saldo_liquido || 0, 
+        alertasEstoque: summary?.alertas_estoque || 0 
+      });
+
+    } catch (error) {
+      console.error("Erro ao carregar Dashboard:", error);
+    }
+    setIsLoading(false);
+  };
+
+  const formatarMoeda = (valor) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor || 0);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Orçamento': return 'bg-slate-100 text-slate-600';
+      case 'Aguardando Aprovação': return 'bg-amber-100 text-amber-700';
+      case 'Em Produção': return 'bg-blue-100 text-blue-700';
+      case 'Pronto': return 'bg-indigo-100 text-indigo-700';
+      case 'Entregue': 
+      case 'Concluído': return 'bg-green-100 text-green-700';
+      case 'Pendente': return 'bg-yellow-100 text-yellow-700';
+      default: return 'bg-slate-100 text-slate-800';
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in pb-20 w-full">
+      
+      {/* CABEÇALHO SIMPLIFICADO */}
+      <div className="mb-2">
+        <p className="text-slate-500 font-medium text-lg">
+          Bem-vindo de volta, <span className="font-bold text-[#0F4C81]">{userName}</span>
+        </p>
       </div>
-    );
-  }
 
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-      {data.map((kpi, index) => (
-        <div key={index} className={`bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-md transition-shadow border-l-4 ${kpi.borderColor || 'border-l-[#0F4C81]'}`}>
-          <h3 className="text-sm font-medium text-slate-500 mb-2 uppercase tracking-wide">{kpi.title}</h3>
-          <div className="text-2xl font-bold text-slate-800 mb-2">{kpi.value}</div>
-          <div className={`text-sm font-semibold flex items-center gap-1 ${kpi.color}`}>
-            {kpi.status}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const MainContentArea = ({ recentOrders, chartData, isLoading, onOpenReceita, onOpenOrdem, totalClientes, itensCriticosEstoque }) => {
-  const maxValorGrafico = chartData && chartData.length > 0 ? Math.max(...chartData.map(d => Math.max(d.receita, d.despesa, 100))) : 100;
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-[#0F4C81]">Fluxo de Caixa (Últimos 6 meses)</h2>
-            <div className="flex gap-4 text-xs font-medium">
-              <span className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-[#1B9C85]"></div> Receitas</span>
-              <span className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-[#0F4C81]"></div> Despesas</span>
+      {/* GRID DE CARDS PRINCIPAIS ENFILEIRADOS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+        
+        {/* Card 1: Vendas */}
+        <div 
+          onClick={() => setActiveTab('vendas')}
+          className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden group border border-slate-100"
+        >
+          <div className="flex items-center gap-3 mb-5 relative z-10">
+            <div className="w-10 h-10 rounded-xl bg-[#0F4C81]/10 text-[#0F4C81] flex items-center justify-center">
+              <SalesIcon />
             </div>
+            <span className="text-slate-700 font-semibold text-[15px]">Faturamento</span>
           </div>
           
-          <div className="h-48 flex justify-between gap-2 md:gap-4 mt-4 pt-4 border-t border-slate-100">
-            {isLoading ? (
-              <div className="w-full h-full flex items-center justify-center text-slate-400">A processar dados...</div>
-            ) : chartData?.length === 0 ? (
-              <div className="w-full h-full flex items-center justify-center text-slate-400">Sem dados suficientes</div>
-            ) : (
-              chartData.map((data, i) => {
-                const alturaReceita = (data.receita / maxValorGrafico) * 100;
-                const alturaDespesa = (data.despesa / maxValorGrafico) * 100;
-                
-                return (
-                  <div key={i} className="flex-1 h-full flex flex-col justify-end group">
-                    <div className="flex justify-center gap-1 w-full h-full items-end">
-                      <div 
-                        className="w-1/2 bg-[#1B9C85] rounded-t-sm transition-all duration-700 ease-out group-hover:opacity-80" 
-                        style={{ height: `${alturaReceita}%`, minHeight: data.receita > 0 ? '4px' : '0' }}
-                        title={`Receita: ${formatMoeda(data.receita)}`}
-                      ></div>
-                      <div 
-                        className="w-1/2 bg-[#0F4C81] rounded-t-sm transition-all duration-700 ease-out group-hover:opacity-80" 
-                        style={{ height: `${alturaDespesa}%`, minHeight: data.despesa > 0 ? '4px' : '0' }}
-                        title={`Despesa: ${formatMoeda(data.despesa)}`}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-center mt-2 text-slate-400 font-medium capitalize shrink-0">
-                      {data.label}
-                    </div>
-                  </div>
-                );
-              })
-            )}
+          <div className="text-2xl font-bold text-slate-800 mb-5 relative z-10">
+            {isLoading ? '...' : formatarMoeda(kpis.vendasMes)}
           </div>
+          
+          <div className="flex items-center gap-2 relative z-10">
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100/80 text-green-700 font-bold text-[10px] border border-green-200/50">
+              <TrendingUpIcon /> +12%
+            </span>
+            <span className="text-slate-400 text-[11px] font-medium">vs. último mês</span>
+          </div>
+          <MiniChartDecoration color="slate-400" />
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#0F4C81]">Receitas Recentes</h2>
+        {/* Card 2: Produção */}
+        <div 
+          onClick={() => setActiveTab('producao')}
+          className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden group border border-slate-100"
+        >
+          <div className="flex items-center gap-3 mb-5 relative z-10">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+              <OSIcon />
+            </div>
+            <span className="text-slate-700 font-semibold text-[15px]">O.S em Produção</span>
           </div>
+          
+          <div className="text-2xl font-bold text-slate-800 mb-5 relative z-10">
+            {isLoading ? '...' : kpis.osPendentes}
+          </div>
+          
+          <div className="flex items-center gap-2 relative z-10">
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100/80 text-green-700 font-bold text-[10px] border border-green-200/50">
+              <TrendingUpIcon /> +5%
+            </span>
+            <span className="text-slate-400 text-[11px] font-medium">vs. último mês</span>
+          </div>
+          <MiniChartDecoration color="slate-400" />
+        </div>
+
+        {/* Card 3: Financeiro */}
+        <div 
+          onClick={() => setActiveTab('financeiro')}
+          className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden group border border-slate-100"
+        >
+          <div className="flex items-center gap-3 mb-5 relative z-10">
+            <div className="w-10 h-10 rounded-xl bg-[#1B9C85]/10 text-[#1B9C85] flex items-center justify-center">
+              <FinanceIcon />
+            </div>
+            <span className="text-slate-700 font-semibold text-[15px]">Saldo Líquido Real</span>
+          </div>
+          
+          <div className={`text-2xl font-bold mb-5 relative z-10 ${kpis.saldoMensal >= 0 ? 'text-slate-800' : 'text-[#E74C3C]'}`}>
+            {isLoading ? '...' : formatarMoeda(kpis.saldoMensal)}
+          </div>
+          
+          <div className="flex items-center gap-2 relative z-10">
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100/80 text-green-700 font-bold text-[10px] border border-green-200/50">
+              <TrendingUpIcon /> +8%
+            </span>
+            <span className="text-slate-400 text-[11px] font-medium">vs. último mês</span>
+          </div>
+          <MiniChartDecoration color="slate-400" />
+        </div>
+
+        {/* Card 4: Estoque */}
+        <div 
+          onClick={() => setActiveTab('estoque')}
+          className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden group border border-slate-100"
+        >
+          <div className="flex items-center gap-3 mb-5 relative z-10">
+            <div className="w-10 h-10 rounded-xl bg-[#E74C3C]/10 text-[#E74C3C] flex items-center justify-center">
+              <StockIcon />
+            </div>
+            <span className="text-slate-700 font-semibold text-[15px]">Estoque Alerta</span>
+          </div>
+          
+          <div className="text-2xl font-bold text-slate-800 mb-5 relative z-10">
+            {isLoading ? '...' : kpis.alertasEstoque}
+          </div>
+          
+          <div className="flex items-center gap-2 relative z-10">
+            <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[10px] border ${kpis.alertasEstoque > 0 ? 'bg-red-100/80 text-red-700 border-red-200/50' : 'bg-green-100/80 text-green-700 border-green-200/50'}`}>
+              {kpis.alertasEstoque > 0 ? <TrendingDownIcon /> : <TrendingUpIcon />} 
+              {kpis.alertasEstoque > 0 ? '-2% Saúde' : 'Tudo Ok'}
+            </span>
+            <span className="text-slate-400 text-[11px] font-medium">Itens abaixo do mínimo</span>
+          </div>
+          <MiniChartDecoration color="slate-400" />
+        </div>
+
+      </div>
+
+      {/* ÁREA INFERIOR */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        
+        {/* Tabela */}
+        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+          <div className="flex justify-between items-center mb-5">
+            <h3 className="font-bold text-lg text-slate-800">Vendas e Faturamentos Recentes</h3>
+            <button onClick={() => setActiveTab('vendas')} className="text-[13px] font-bold text-[#0F4C81] hover:underline bg-[#0F4C81]/5 px-3 py-1.5 rounded-lg transition-colors">
+              Ver todas
+            </button>
+          </div>
+          
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4">Ref</th>
-                  <th className="px-6 py-4">Cliente</th>
-                  <th className="px-6 py-4">Valor</th>
-                  <th className="px-6 py-4">Status</th>
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="pb-3 font-semibold text-slate-400 uppercase tracking-wider text-[11px]">Cliente</th>
+                  <th className="pb-3 font-semibold text-slate-400 uppercase tracking-wider text-[11px]">Serviço / Produto</th>
+                  <th className="pb-3 font-semibold text-slate-400 uppercase tracking-wider text-[11px] text-right">Valor</th>
+                  <th className="pb-3 font-semibold text-slate-400 uppercase tracking-wider text-[11px] text-center">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-50">
                 {isLoading ? (
-                  <tr><td colSpan="4" className="px-6 py-8 text-center text-slate-400">A calcular dados...</td></tr>
-                ) : recentOrders.length === 0 ? (
-                  <tr><td colSpan="4" className="px-6 py-8 text-center text-slate-400">Nenhuma venda registada.</td></tr>
+                  <tr><td colSpan="4" className="py-6 text-center text-slate-400 text-sm">Carregando...</td></tr>
+                ) : ultimasVendas.length === 0 ? (
+                  <tr><td colSpan="4" className="py-6 text-center text-slate-400 text-sm">Nenhuma movimentação recente registrada.</td></tr>
                 ) : (
-                  recentOrders.map((order, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-slate-400 text-xs uppercase">{order.id}</td>
-                      <td className="px-6 py-4 text-slate-800 font-medium">{order.client}</td>
-                      <td className="px-6 py-4 font-semibold text-slate-700">{order.value}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${order.statusColor}`}>
-                          {order.status}
+                  ultimasVendas.map((v) => (
+                    <tr key={v.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="py-3.5 font-bold text-slate-800 pr-4 text-[13px]">
+                        {v.cliente}
+                      </td>
+                      <td className="py-3.5 text-slate-500 truncate max-w-[130px] pr-4 text-[13px]">
+                        {v.servico}
+                      </td>
+                      <td className="py-3.5 text-right font-bold text-slate-800 pr-4 text-[13px]">
+                        {formatarMoeda(v.valor_total)}
+                      </td>
+                      <td className="py-3.5 text-center">
+                        <span className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider ${getStatusColor(v.status)}`}>
+                          {v.status || 'Orçamento'}
                         </span>
                       </td>
                     </tr>
@@ -128,177 +304,66 @@ const MainContentArea = ({ recentOrders, chartData, isLoading, onOpenReceita, on
             </table>
           </div>
         </div>
-      </div>
 
-      <div className="space-y-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 bg-red-100 text-[#E74C3C] rounded-lg"><Icons.Alert /></div>
-            <h2 className="text-lg font-semibold text-slate-800">Central de Alertas</h2>
-          </div>
-          <div className="space-y-3">
-            {itensCriticosEstoque > 0 && (
-              <div className="p-3 bg-orange-50 rounded-lg border border-orange-100 flex gap-3 items-start">
-                <span className="text-orange-500 mt-0.5">📦</span>
-                <div>
-                  <p className="text-sm font-semibold text-orange-900">Estoque Crítico</p>
-                  <p className="text-xs text-orange-700 mt-1">Existem {itensCriticosEstoque} itens abaixo do mínimo recomendado.</p>
-                </div>
+        {/* Atalhos com abertura de Modal */}
+        <div className="bg-[#1B263B] rounded-2xl p-6 shadow-md text-white flex flex-col relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-[#0F4C81] rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-x-1/4 -translate-y-1/4 pointer-events-none"></div>
+          
+          <h3 className="font-bold text-lg text-white mb-6 relative z-10">Ações Rápidas</h3>
+          
+          <div className="space-y-3 flex-1 relative z-10">
+            <button onClick={() => setIsModalVendaOpen(true)} className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-all group">
+              <div className="w-10 h-10 rounded-lg bg-white/10 text-white flex items-center justify-center group-hover:scale-105 transition-transform">
+                <SalesIcon />
               </div>
-            )}
-            <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 flex gap-3 items-start">
-              <span className="text-[#0F4C81] mt-0.5">👥</span>
-              <div>
-                <p className="text-sm font-semibold text-blue-900">Base de Clientes</p>
-                <p className="text-xs text-blue-700 mt-1">Total de {totalClientes} clientes registados no CRM.</p>
+              <div className="text-left">
+                <div className="font-semibold text-sm">Nova Venda</div>
+                <div className="text-[11px] text-slate-300 font-medium">Criar pedido ou orçamento</div>
               </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-[#0F4C81] p-6 rounded-xl shadow-md text-white">
-          <h2 className="text-lg font-semibold mb-4">Ações Rápidas</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <button 
-              onClick={onOpenReceita}
-              className="bg-white/10 hover:bg-white/20 p-3 rounded-lg text-sm font-medium transition-colors text-left flex flex-col gap-2"
-            >
-              <Icons.Financeiro /> Nova Receita
             </button>
-            <button 
-              onClick={onOpenOrdem}
-              className="bg-white/10 hover:bg-white/20 p-3 rounded-lg text-sm font-medium transition-colors text-left flex flex-col gap-2"
-            >
-             <Icons.Producao /> Nova O.S
+
+            <button onClick={() => setIsModalPagamentoOpen(true)} className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-all group">
+              <div className="w-10 h-10 rounded-lg bg-white/10 text-white flex items-center justify-center group-hover:scale-105 transition-transform">
+                <FinanceIcon />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-sm">Lançamento de Caixa</div>
+                <div className="text-[11px] text-slate-300 font-medium">Registrar entrada ou despesa</div>
+              </div>
+            </button>
+
+            <button onClick={() => setIsModalOSOpen(true)} className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-all group">
+              <div className="w-10 h-10 rounded-lg bg-white/10 text-white flex items-center justify-center group-hover:scale-105 transition-transform">
+                <OSIcon />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-sm">Nova O.S</div>
+                <div className="text-[11px] text-slate-300 font-medium">Criar ordem de produção</div>
+              </div>
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  );
-};
 
-export default function Dashboard() {
-  const [kpiData, setKpiData] = useState([]);
-  const [recentOrders, setRecentOrders] = useState([]);
-  const [chartData, setChartData] = useState([]);
-  const [totalClientes, setTotalClientes] = useState(0);
-  const [itensCriticosEstoque, setItensCriticosEstoque] = useState(0);
-  const [isLoadingDash, setIsLoadingDash] = useState(true);
-
-  const [isReceitaOpen, setIsReceitaOpen] = useState(false);
-  const [isOrdemOpen, setIsOrdemOpen] = useState(false);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    setIsLoadingDash(true);
-    
-    // Buscar Transações Financeiras
-    const { data: transacoes } = await supabase.from('transacoes').select('*');
-    
-    // Buscar Clientes
-    const { count: countClientes } = await supabase.from('clientes').select('*', { count: 'exact', head: true });
-    setTotalClientes(countClientes || 0);
-
-    // Buscar Estoque Crítico
-    const { data: estoque } = await supabase.from('estoque').select('*');
-    const criticos = estoque ? estoque.filter(item => Number(item.quantidade) <= Number(item.estoque_minimo)).length : 0;
-    setItensCriticosEstoque(criticos);
-
-    let totalFaturamento = 0;
-    let totalDespesas = 0;
-    let totalAPagar = 0;
-
-    transacoes?.forEach(trx => {
-      const valor = Number(trx.valor) || 0;
-      if (trx.tipo === 'receita' && trx.status === 'Pago') totalFaturamento += valor;
-      if (trx.tipo === 'despesa' && trx.status === 'Pago') totalDespesas += valor;
-      if (trx.tipo === 'despesa' && trx.status === 'Pendente') totalAPagar += valor;
-    });
-
-    const lucro = totalFaturamento - totalDespesas;
-
-    setKpiData([
-      { title: 'Faturamento', value: formatMoeda(totalFaturamento), status: 'Real', color: 'text-[#1B9C85]', borderColor: 'border-l-[#1B9C85]' },
-      { title: 'Lucro Líquido', value: formatMoeda(lucro), status: lucro >= 0 ? 'Saudável' : 'Negativo', color: lucro >= 0 ? 'text-[#1B9C85]' : 'text-[#E74C3C]', borderColor: 'border-l-[#0F4C81]' },
-      { title: 'Contas a Pagar', value: formatMoeda(totalAPagar), status: totalAPagar > 0 ? 'Atenção' : 'Em dia', color: totalAPagar > 0 ? 'text-[#E74C3C]' : 'text-[#1B9C85]', borderColor: 'border-l-[#E74C3C]' },
-      { title: 'Clientes CRM', value: countClientes || 0, status: 'Ativos', color: 'text-[#0F4C81]', borderColor: 'border-l-blue-500' },
-    ]);
-
-    const recentes = transacoes
-      ?.filter(trx => trx.tipo === 'receita')
-      .slice(0, 4)
-      .map(trx => ({
-        id: trx.id ? trx.id.toString().substring(0, 8) : '---',
-        client: trx.cliente || 'Cliente Diversos',
-        value: formatMoeda(trx.valor),
-        status: trx.status === 'Pago' ? 'Faturado' : 'Pendente',
-        statusColor: trx.status === 'Pago' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-      }));
-    setRecentOrders(recentes || []);
-
-    const ultimos6Meses = [];
-    const hoje = new Date();
-    
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
-      ultimos6Meses.push({
-        mes: d.getMonth(),
-        ano: d.getFullYear(),
-        label: d.toLocaleDateString('pt-BR', { month: 'short' }),
-        receita: 0,
-        despesa: 0
-      });
-    }
-
-    transacoes?.forEach(trx => {
-      if (!trx.vencimento) return;
-      const [anoStr, mesStr] = trx.vencimento.split('-');
-      if (!anoStr || !mesStr) return;
-      const trxAno = parseInt(anoStr, 10);
-      const trxMes = parseInt(mesStr, 10) - 1;
-
-      const mesIndex = ultimos6Meses.findIndex(m => m.mes === trxMes && m.ano === trxAno);
-      if (mesIndex !== -1 && trx.status === 'Pago') {
-        const valor = Number(trx.valor) || 0;
-        if (trx.tipo === 'receita') ultimos6Meses[mesIndex].receita += valor;
-        if (trx.tipo === 'despesa') ultimos6Meses[mesIndex].despesa += valor;
-      }
-    });
-
-    setChartData(ultimos6Meses);
-    setIsLoadingDash(false);
-  };
-
-  return (
-    <>
-      <div className="max-w-7xl mx-auto space-y-6 animate-fade-in relative z-0">
-        <KPICards data={kpiData} isLoading={isLoadingDash} />
-        <MainContentArea 
-          recentOrders={recentOrders} 
-          chartData={chartData} 
-          isLoading={isLoadingDash} 
-          onOpenReceita={() => setIsReceitaOpen(true)}
-          onOpenOrdem={() => setIsOrdemOpen(true)}
-          totalClientes={totalClientes}
-          itensCriticosEstoque={itensCriticosEstoque}
-        />
       </div>
 
+      {/* Renderização dos Modais */}
+      <ModalPedidoVenda 
+        isOpen={isModalVendaOpen} 
+        onClose={() => setIsModalVendaOpen(false)} 
+        onSuccess={fetchDashboardData} 
+      />
+      
       <ModalPagamento 
-        isOpen={isReceitaOpen} 
-        onClose={() => setIsReceitaOpen(false)} 
+        isOpen={isModalPagamentoOpen} 
+        onClose={() => setIsModalPagamentoOpen(false)} 
         onSuccess={fetchDashboardData} 
       />
-
+      
       <ModalNovaOS 
-        isOpen={isOrdemOpen} 
-        onClose={() => setIsOrdemOpen(false)} 
+        isOpen={isModalOSOpen} 
+        onClose={() => setIsModalOSOpen(false)} 
         onSuccess={fetchDashboardData} 
       />
-    </>
+    </div>
   );
 }

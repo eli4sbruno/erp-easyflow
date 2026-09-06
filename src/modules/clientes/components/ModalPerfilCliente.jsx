@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/supabaseClient";
-import Portal from "@/modules/portal/Portal";
 
 // Importações dos modais existentes
 import ModalNovaOS from "@/modules/producao/components/ModalNovaOS"; 
@@ -93,7 +92,7 @@ export default function ModalPerfilCliente({ isOpen, cliente, onClose }) {
   if (!isOpen || !cliente) return null;
 
   return (
-    <Portal>
+    <>
       <div className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm transition-opacity">
         <div className="bg-white w-full max-w-5xl h-full shadow-2xl animate-fade-in flex flex-col sm:flex-row overflow-hidden relative">
           
@@ -326,6 +325,6 @@ export default function ModalPerfilCliente({ isOpen, cliente, onClose }) {
           cliente: cliente.nome,
         }}
       />
-    </Portal>
+    </>
   );
 }
