@@ -39,7 +39,9 @@ export default function Vendas() {
     setIsLoading(true);
     const { data, error } = await supabase
       .from('vendas')
-      .select(`*, clientes:cliente_id(nome_razao, telefone)`)
+      .select('*, clientes(nome_razao)')
+      .neq('status', 'Cancelada')
+      .neq('status', 'CANCELADA')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -71,8 +73,8 @@ export default function Vendas() {
     
     if (!confirmacao) return;
 
-    // Atualiza otimista (instantâneo na UI)
-    setPedidos(pedidos.map(p => p.id === id ? { ...p, status: 'Cancelada' } : p));
+    // Atualiza otimista (faz o item sumir da tela instantaneamente)
+setPedidos(pedidos.filter(p => p.id !== id));
 
     // Atualiza no banco
     const { error } = await supabase.from('vendas').update({ status: 'Cancelada' }).eq('id', id);

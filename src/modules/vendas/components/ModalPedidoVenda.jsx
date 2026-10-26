@@ -51,7 +51,7 @@ export default function ModalPedidoVenda({ isOpen, onClose: propOnClose, onSucce
   const [enderecoEntrega, setEnderecoEntrega] = useState('');
 
   const [desconto, setDesconto] = useState('');
-  const [status, setStatus] = useState('Em Produção');
+  const [status, setStatus] = useState('Em Andamento');
   const [vendedor, setVendedor] = useState('Elias Bruno');
   const [condicaoPagamento, setCondicaoPagamento] = useState('À Vista');
   const [observacoes, setObservacoes] = useState('');
@@ -84,7 +84,7 @@ export default function ModalPedidoVenda({ isOpen, onClose: propOnClose, onSucce
     setItensPedido([]); setProdutoBusca(''); setNovoItemDesc(''); setNovoItemValor(''); setNovoItemQtd(1); setNovoItemProdutoId(null);
     setClienteBusca(''); setClienteTelefone(''); setClienteEndereco(''); setClienteSelecionadoObj(null);
     setMetodoEntrega('Balcão'); setEnderecoEntrega('');
-    setStatus('Em Produção'); setDesconto(''); setObservacoes(''); 
+    setStatus('Em Andamento'); setDesconto(''); setObservacoes(''); 
     
     // Reseta a O.S
     setGerarOSVinculada(false); setOsDescricao(''); setOsPrazo(''); setOsResponsavel('Elias Bruno');
@@ -508,7 +508,7 @@ export default function ModalPedidoVenda({ isOpen, onClose: propOnClose, onSucce
                         <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Status Final</label>
                         <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg font-bold text-slate-700 focus:outline-none focus:border-[#0F4C81]">
                           <option value="Orçamento">Apenas Orçamento</option>
-                          <option value="Em Produção">Aprovado / Em Produção</option>
+                          <option value="Em Andamento">Aprovado / Em Andamento</option>
                           <option value="Aguardando Aprovação">Aguardando Aprovação</option>
                           <option value="Pronto">Pronto para Entrega</option>
                         </select>
