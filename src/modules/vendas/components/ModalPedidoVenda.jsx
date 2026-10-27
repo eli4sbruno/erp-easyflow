@@ -164,35 +164,6 @@ export default function ModalPedidoVenda({ isOpen, onClose: propOnClose, onSucce
 
   const voltarEtapa = () => setEtapaAtual(etapaAtual - 1);
 
-  // ----------------------------------------------------
-  // FUNÇÃO NOVA: BAIXA DE ESTOQUE INTEGRADA À VENDA
-  // ----------------------------------------------------
-  const processarBaixaEstoqueVenda = async (itens, vendaId) => {
-    // Filtra apenas os itens que vieram do estoque (tem ID)
-    const itensDeEstoque = itens.filter(i => i.produto_id);
-    if (itensDeEstoque.length === 0) return; 
-
-    for (const item of itensDeEstoque) {
-      // 1. Pega o saldo atual
-      const { data: produto } = await supabase.from('produtos').select('quantidade_atual').eq('id', item.produto_id).single();
-      
-      if (produto) {
-        const novoSaldo = produto.quantidade_atual - item.qtd;
-        
-        // 2. Atualiza o saldo
-        await supabase.from('produtos').update({ quantidade_atual: novoSaldo }).eq('id', item.produto_id);
-        
-        // 3. Registra no histórico de movimentação
-        await supabase.from('movimentacoes_estoque').insert([{
-          produto_id: item.produto_id,
-          tipo_movimentacao: 'SAIDA',
-          quantidade: item.qtd,
-          observacao: `Venda Direta #${vendaId}`
-        }]);
-      }
-    }
-  };
-
   const handleFinalizar = async (acao = 'salvar') => {
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -252,11 +223,6 @@ export default function ModalPedidoVenda({ isOpen, onClose: propOnClose, onSucce
         preco_unitario: item.precoUnitario 
       }));
       await supabase.from('itens_venda').insert(payloadItens);
-
-      // EXECUTA A BAIXA NO ESTOQUE (SÓ SE FOR VENDA NOVA)
-      if (!currentId) {
-        await processarBaixaEstoqueVenda(itensPedido, vendaSalva.id);
-      }
     }
 
     // GERA A O.S EMBUTIDA (Se marcada)
