@@ -1,0 +1,18 @@
+name: Supabase Keep-Alive Ping
+
+on:
+  schedule:
+    # Roda a cada 3 dias às 03:00 da manhã
+    - cron: '0 3 */3 * *'
+  workflow_dispatch: # Permite testar manualmente no GitHub
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executar requisição para manter o Supabase ativo
+        run: |
+          curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/produtos?select=id&limit=1" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+          
